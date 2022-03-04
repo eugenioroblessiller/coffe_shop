@@ -68,8 +68,11 @@ class Artist(db.Model):
     phone = db.Column(db.String(120))
     genres = db.relationship(
         'Genre', secondary=artist_genres, backref=db.backref('genres', lazy=True))
-    image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
+    image_link = db.Column(db.String(500))
+    website_link = db.Column(db.String(500))
+    looking_for_venues = db.Column(db.Boolean, unique=False, default=False)
+    seeking_description = db.Column(db.String())
 
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
