@@ -30,8 +30,10 @@ migrate = Migrate(app, db)
 #----------------------------------------------------------------------------#
 
 artist_genres = db.Table('artist_genres',
-                         db.Column('artist_id', db.Integer, primary_key=True),
-                         db.Column('genere_id', db.Integer, primary_key=True))
+                         db.Column('artist_id', db.Integer, db.ForeignKey(
+                             'artist.id'), primary_key=True),
+                         db.Column('genere_id', db.Integer, db.ForeignKey(
+                             'genere.id'), primary_key=True))
 
 
 class Genre(db.Model):
