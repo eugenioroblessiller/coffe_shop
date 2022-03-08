@@ -487,7 +487,7 @@ def create_artist_submission():
         artist.facebook_link = request.form['facebook_link']
         artist.image_link = request.form['image_link']
         artist.website_link = request.form['website_link']
-        artist.looking_for_venues = request.form['seeking_venue']
+        artist.seeking_venue = 'seeking_venue' in request.form
         artist.seeking_description = request.form['seeking_description']
         db.session.add(artist)
         db.session.commit()
