@@ -46,14 +46,14 @@ migrate = Migrate(app, db)
 
 
 class Genre(db.Model):
-    __tablename__ = 'genere'
+    __tablename__ = 'generes'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(), nullable=False)
 
 
 class Venue(db.Model):
-    __tablename__ = 'venue'
+    __tablename__ = 'venues'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
@@ -68,11 +68,13 @@ class Venue(db.Model):
     seeking_talent = db.Column(db.Boolean, unique=False, default=False)
     seeking_description = db.Column(db.String())
 
+    artists = db.relationship('Artist', secondary='shows')
+    shows = db.relationship('Show', backref=('venues'))
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 
 class Artist(db.Model):
-    __tablename__ = 'artist'
+    __tablename__ = 'artists'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
@@ -86,18 +88,24 @@ class Artist(db.Model):
     seeking_venue = db.Column(db.Boolean, unique=False, default=False)
     seeking_description = db.Column(db.String())
 
+    venues = db.relationship('Venue', secondary='shows')
+    shows = db.relationship('Show', backref=('artists'))
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
 
 
 class Show(db.Model):
-    __tablename__ = 'show'
+    __tablename__ = 'shows'
 
     id = db.Column(db.Integer, primary_key=True)
     artist_id = db.Column(db.Integer, nullable=False)
     venue_id = db.Column(db.Integer, nullable=False)
     start_time = db.Column(db.DateTime(), nullable=False)
+
+    venue = db.relationship('Venue')
+    artist = db.relationship('Artist')
+
 
 #----------------------------------------------------------------------------#
 # Filters.
@@ -132,6 +140,8 @@ def index():
 def venues():
     # TODO: replace with real venues data.
     #       num_upcoming_shows should be aggregated based on number of upcoming shows per venue.
+    venues = Venue.query.order_by(Venue.state, Venue.city).all()
+
     data = [{
         "city": "San Francisco",
         "state": "CA",
@@ -325,16 +335,6 @@ def delete_venue(venue_id):
 def artists():
     # TODO: replace with real data returned from querying the database
     data = Artist.query.all()
-    # data = [{
-    #     "id": 4,
-    #     "name": "Guns N Petals",
-    # }, {
-    #     "id": 5,
-    #     "name": "Matt Quevedo",
-    # }, {
-    #     "id": 6,
-    #     "name": "The Wild Sax Band",
-    # }]
     return render_template('pages/artists.html', artists=data)
 
 
