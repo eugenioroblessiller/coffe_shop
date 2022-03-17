@@ -515,16 +515,16 @@ def show_artist(artist_id):
 def edit_artist(artist_id):
     artist = Artist.query.filter_by(id=artist_id).first_or_404()
     form = ArtistForm(
-        name= artist.name,
-        genres= artist.genres,
-        city= artist.city,
-        state= artist.state,
-        phone= artist.phone,
+        name=artist.name,
+        genres=artist.genres,
+        city=artist.city,
+        state=artist.state,
+        phone=artist.phone,
         website_link=artist.website_link,
-        facebook_link= artist.facebook_link,
-        seeking_venue= artist.seeking_venue,
-        seeking_description= artist.seeking_description,
-        image_link= artist.image_link
+        facebook_link=artist.facebook_link,
+        seeking_venue=artist.seeking_venue,
+        seeking_description=artist.seeking_description,
+        image_link=artist.image_link
     )
 
     # artist = {
@@ -574,14 +574,27 @@ def edit_artist_submission(artist_id):
         else:
             flash('Artist ' + request.form['name'] +
                   ' was successfully updated!')
-        
+
     return redirect(url_for('show_artist', artist_id=artist_id))
 
 
 @app.route('/venues/<int:venue_id>/edit', methods=['GET'])
 def edit_venue(venue_id):
-    form = VenueForm()
-    venue = Venue.query.filter_by(id=venue_id)
+    venue = Venue.query.filter_by(id=venue_id).first_or_404()
+    form = VenueForm(
+        name=venue.name,
+        genres=venue.genres,
+        address=venue.address,
+        city=venue.city,
+        state=venue.state,
+        phone=venue.phone,
+        website_link=venue.website_link,
+        facebook_link=venue.facebook_link,
+        seeking_talent=venue.seeking_talent,
+        seeking_description=venue.seeking_description,
+        image_link=venue.image_link
+    )
+
     # TODO: populate form with values from venue with ID <venue_id>
     return render_template('forms/edit_venue.html', form=form, venue=venue)
 
