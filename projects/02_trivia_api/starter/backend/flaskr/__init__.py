@@ -114,6 +114,20 @@ def create_app(test_config=None):
   the form will clear and the question will appear at the end of the last page
   of the questions list in the "List" tab.
   '''
+    @app.route('/questions', methods=['POST'])
+    def create_question():
+        print('some')
+        data = request.get_json()
+        if data is None:
+            abort(422)
+        try:
+            question = Question(question=data['question'], answer=data['answer'],
+                                category=data['category'], difficulty=data['difficulty'])
+            question.insert()
+
+            return jsonify({'success': True, 'created_question': question.question})
+        except:
+            return unprocessable(422)
 
     '''
   @TODO:
@@ -169,7 +183,7 @@ def create_app(test_config=None):
         }), 400
 
     @app.errorhandler(422)
-    def unprocessableun():
+    def unprocessable():
         return jsonify({
             'success': True,
             'error': 422,
