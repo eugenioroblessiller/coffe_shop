@@ -5,6 +5,8 @@ from flask_sqlalchemy import SQLAlchemy, Pagination
 from flask_cors import CORS
 import random
 
+from sqlalchemy.sql.expression import func, select
+
 from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
@@ -189,7 +191,46 @@ def create_app(test_config=None):
   one question at a time is displayed, the user is allowed to answer
   and shown whether they were correct or not.
   '''
+    @app.route('/quizzes', methods=['POST'])
+    def get_random_question():
+        data = request.get_json()
+        # print('data desde el front----->', data)
+        previus_question = data.get('previous_questions')
+        category = data.get('quiz_category')
 
+        if category is None or previus_question is None:
+            unprocessable(422)
+
+        if category['id'] == 0:
+            selected_question = Question.query.order_by(
+                func.random()).first()
+        else:
+            selected_question = Question.query.filter_by(
+                category=category['id']).order_by(func.random()).first()
+
+        # print('pregunta seleccionada----->', selected_question)
+
+        while (check_if_question_is_use(previus_question, selected_question)):
+            # print('revisando si fue usada ----->',
+            #       check_if_question_is_use(previus_question, selected_question))
+            if category['id'] == 0:
+                selected_question = Question.query.order_by(
+                    func.random()).first()
+            else:
+                selected_question = Question.query.filter_by(
+                    category=category['id']).order_by(func.random()).first()
+
+        return jsonify({'success': True, 'question': selected_question.format()})
+
+    def check_if_question_is_use(previus_questions, question):
+        is_use = False
+        for q in previus_questions:
+            if q == question.id:
+                is_use = True
+        print('que tenemos aqui ---->', is_use)
+        return is_use
+
+    
     '''
   @TODO:
   Create error handlers for all expected errors
