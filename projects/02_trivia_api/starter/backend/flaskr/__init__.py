@@ -202,25 +202,24 @@ def create_app(test_config=None):
             unprocessable(422)
 
         if category['id'] == 0:
-            selected_question = Question.query.order_by(
-                func.random()).first()
+            selected_question = select_random_question(category)
         else:
-            selected_question = Question.query.filter_by(
-                category=category['id']).order_by(func.random()).first()
-
-        # print('pregunta seleccionada----->', selected_question)
+            selected_question = select_random_question(category)
 
         while (check_if_question_is_use(previus_question, selected_question)):
-            # print('revisando si fue usada ----->',
-            #       check_if_question_is_use(previus_question, selected_question))
-            if category['id'] == 0:
-                selected_question = Question.query.order_by(
-                    func.random()).first()
-            else:
-                selected_question = Question.query.filter_by(
-                    category=category['id']).order_by(func.random()).first()
+            selected_question = select_random_question(category)
 
         return jsonify({'success': True, 'question': selected_question.format()})
+
+    def select_random_question(category):
+        if category['id'] == 0:
+            selected_question = Question.query.order_by(
+                    func.random()).first()
+        else:
+            selected_question = Question.query.filter_by(
+                    category=category['id']).order_by(func.random()).first()
+                
+        return selected_question
 
     def check_if_question_is_use(previus_questions, question):
         is_use = False
