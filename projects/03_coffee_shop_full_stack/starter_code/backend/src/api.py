@@ -1,4 +1,6 @@
+from crypt import methods
 import os
+from turtle import title
 from flask import Flask, request, jsonify, abort
 from sqlalchemy import exc
 import json
@@ -17,7 +19,7 @@ CORS(app)
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 !! Running this function will add one
 '''
-db_drop_and_create_all()
+# db_drop_and_create_all()
 
 # ROUTES
 '''
@@ -28,6 +30,15 @@ db_drop_and_create_all()
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+
+@app.route('/drinks', methods=['GET'])
+def get_drinks():
+    drinks_selection = Drink.query.order_by(Drink.id).all()
+    drinks = [drink.short() for drink in drinks_selection]
+    if drinks:
+        return jsonify({"success": True, "drinks": drinks})
+    else:
+        return not_found_error(404)
 
 
 '''
@@ -40,6 +51,20 @@ db_drop_and_create_all()
 '''
 
 
+@app.route('/drinks-detail', methods=['GET'])
+@requires_auth('get:drinks-detail')
+def get_drinks_detail():
+    drinks_selection = Drink.query.order_by(Drink.id).all()
+    drinks = [drink.long() for drink in drinks_selection]
+    if drinks:
+        return jsonify({
+            'success': True,
+            'drinks': drinks
+        })
+    else:
+        return not_found_error(404)
+
+
 '''
 @TODO implement endpoint
     POST /drinks
@@ -49,6 +74,22 @@ db_drop_and_create_all()
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
         or appropriate status code indicating reason for failure
 '''
+
+
+@app.route('/drinks', methods=['POST'])
+@requires_auth('post:drinks')
+def create_drink():
+    data = request.get_json()
+    if 'title' and 'recipie' in data:
+        try:
+            drink = Drink(title=data['title'], recipe=data['recipe'])
+            drink.insert()
+            return jsonify({
+                'success': True,
+                'drinks': drink.long()
+            })
+        except:
+            return not_found_error(404)
 
 
 '''
@@ -64,6 +105,24 @@ db_drop_and_create_all()
 '''
 
 
+@app.route('/drinks/<int:id>', methods=['PATCH'])
+@requires_auth('patch:drinks')
+def edit_drink(id):
+    drink = Drink.query.get(id)
+    if drink:
+        data = request.get_json()
+        if 'title' and 'recipie' in data:
+            drink.title = data['title']
+            drink.recipie = data['recipie']
+        drink.upate()
+        return jsonify({
+            'success': True,
+            'drinks': drink.long()
+        })
+    else:
+        return not_found_error(404)
+
+
 '''
 @TODO implement endpoint
     DELETE /drinks/<id>
@@ -74,6 +133,20 @@ db_drop_and_create_all()
     returns status code 200 and json {"success": True, "delete": id} where id is the id of the deleted record
         or appropriate status code indicating reason for failure
 '''
+
+
+@app.route('/drinks/<int:id>', methods=['DELETE'])
+@requires_auth('delete:drinks')
+def delete_drink(id):
+    drink = Drink.query.get(id)
+    if drink:
+        drink.delete()
+        return jsonify({
+            'success': True,
+            'delete': drink.id
+        })
+    else:
+        return not_found_error(404)
 
 
 # Error Handling
@@ -102,16 +175,42 @@ def unprocessable(error):
 
 '''
 
+
 '''
 @TODO implement error handler for 404
     error handler should conform to general task above
 '''
 
 
+@app.errorhandler(404)
+def not_found_error(error):
+    return jsonify({
+        "success": False,
+        "error": 404,
+        "message": "resource not found"
+    }), 404
+
+
 '''
 @TODO implement error handler for AuthError
     error handler should conform to general task above
 '''
+
+
+@app.errorhandler(401)
+def unauthorize(error):
+    return jsonify({
+        "success": False,
+        "error": 404,
+        "message": "unauthorize"
+    }), 401
+
+
+@app.errorhandler(AuthError)
+def process_AuthError(error):
+    response = jsonify(error.error)
+    response.status_code = error.status_code
+
 
 if __name__ == "__main__":
     app.debug = True
